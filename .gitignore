@@ -218,3 +218,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ─── arxiv-search: data and local state (never commit) ─────────────────────
+data/*
+!data/.gitkeep
+.env
+logs/
+*.pdf
+*.pdf.json
+dumps/
+snapshots/
+hf_cache/
+.cache/
+.DS_Store
+

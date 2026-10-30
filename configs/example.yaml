@@ -1,0 +1,32 @@
+# Full-text ingest configuration.
+# All paths are relative to the directory you run the command from.
+# Nothing here is machine-specific: set the four paths and two endpoints.
+
+subsample_path: data/ids.txt          # one arXiv ID per line
+pdf_root: data/pdfs                   # downloaded PDFs: {pdf_root}/{YYMM}/{id}.pdf
+metadata_path: data/metadata.json     # JSON array from scripts/fetch_metadata.py
+
+pipeline:
+  parser:
+    workers: 3
+    env:
+      DOCLING_DEVICE: auto
+      DOCLING_DO_OCR: "false"          # arXiv PDFs are born-digital
+      DOCLING_NUM_THREADS: "4"
+      DOCLING_DO_TABLE_STRUCTURE: "false"
+  chunker:
+    target_tokens: 300
+  embedder:
+    endpoint: http://localhost:8005/v1/embeddings
+    model_id: BAAI/bge-m3
+    concurrency: 2
+    batch_size: 256
+  in_flight: 20
+  progress_every: 50
+
+storage:
+  postgres_dsn: postgresql://arxiv:arxiv@localhost:5432/arxiv_mvp
+  qdrant_url: http://localhost:6333
+  qdrant_collection: arxiv_chunks
+  recreate_qdrant: false              # true = wipe the collection (destructive)
+  write_native_sparse: true           # dense + native sparse named vectors

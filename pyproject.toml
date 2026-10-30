@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arxiv-search"
+version = "0.1.0"
+description = "Self-hosted hybrid retrieval and RAG over an arXiv corpus"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11,<3.14"
+authors = [{ name = "Maxim Shalankin" }]
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "httpx>=0.27",
+  "asyncpg>=0.29",
+  "qdrant-client>=1.12,<1.13",
+  "numpy>=1.26",
+  "PyYAML>=6.0",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# PDF parsing for the full-text ingest path (Docling -> markdown -> chunks).
+ingest = [
+  "docling>=2.0",
+  "tiktoken>=0.7",
+  "ijson>=3.2",
+]
+# In-process cross-encoder reranker. Skip this extra if RERANKER_HTTP_URL is set.
+rerank = [
+  "torch>=2.3",
+  "transformers>=4.41",
+]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arxiv_mvp"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+# Keep lint focused on correctness: syntax errors, undefined names, unused
+# imports. The imported codebase predates this repository's style settings.
+[tool.ruff.lint]
+select = ["E9", "F"]

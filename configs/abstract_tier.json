@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "policy_id": "abstract_tier",
+  "policy_version": 1,
+  "description": "Abstract-only tier: one chunk per paper built from title + abstract.",
+  "tiers": {
+    "abstract": {
+      "enabled": true,
+      "text_template": "{title}\n\n{abstract}",
+      "heading_path": "Abstract",
+      "chunk_index": 0,
+      "tier_payload": "abstract",
+      "write_payload_text": false,
+      "ingestion_stage": "abstract_indexed",
+      "embedding_model": "BAAI/bge-m3"
+    }
+  }
+}

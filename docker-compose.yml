@@ -1,0 +1,58 @@
+# Local development storage for arxiv-search.
+#
+# This file is intentionally small: PostgreSQL for metadata/chunks and Qdrant
+# for dense + sparse vectors. The API and the model servers run outside compose
+# (see docs/OPERATIONS.md and docs/DEPENDENCIES.md).
+#
+# Dev-only credentials: change POSTGRES_PASSWORD and the DSN before exposing
+# this stack to anything other than localhost.
+#
+# Start:  docker compose up -d
+# Stop:   docker compose down
+# Wipe:   docker compose down -v   # deletes both volumes
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: arxiv-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arxiv_mvp}
+      POSTGRES_USER: ${POSTGRES_USER:-arxiv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arxiv}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - arxiv_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arxiv} -d ${POSTGRES_DB:-arxiv_mvp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: arxiv-qdrant
+    restart: unless-stopped
+    environment:
+      QDRANT__LOG_LEVEL: INFO
+      QDRANT__TELEMETRY_DISABLED: "true"
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - arxiv_qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  arxiv_pg_data:
+  arxiv_qdrant_data:
